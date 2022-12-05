@@ -1,4 +1,4 @@
-var a = ["car", "butterfly", "bird", "bat"] ;
+var a = ["skyscraper", "beach", "line", "hurricane"] ;
 random_number = Math.floor((Math.random()*a.length)+1) ;
 sketch = a[random_number] ;
 console.log(sketch) ;
@@ -13,7 +13,7 @@ score = 0 ;
 function updateCanvas() 
 {
     background("white") ;
-    var a = ["car", "butterfly", "bird", "bat"] ;
+    var a = ["skyscraper", "beach", "line", "hurricane"] ;
     random_number = Math.floor((Math.random()*a.length)+1) ;
     sketch = a[random_number] ;
     console.log(sketch) ;
@@ -22,9 +22,16 @@ function updateCanvas()
 
 function setup() 
 {
-    canvas = createCanvas(280,280) ;
-    canvas.center() ;
-    background("white") ;
+    canvas = createCanvas(280, 280) ;
+    canvas.center();
+    background("white");
+    canvas.mouseReleased(classifyCanvas) ;
+    synth = window.speechSynthesis ;
+}
+
+function preload() 
+{
+    classifier = ml5.imageClassifier("DoodleNet") ;
 }
 
 function draw() 
@@ -35,6 +42,12 @@ function draw()
         answer_holder = "set" ;
         score = score + 1 ;
         document.getElementById("score").innerHTML = "Score : " + score ;
+    }
+    strokeWeight(8) ;
+    stroke(0) ;
+    if(mouseIsPressed) 
+    {
+        line(pmouseX, pmouseY, mouseX, mouseY) ;
     }
 }
 
@@ -52,6 +65,30 @@ function check_sketch()
     {
         timer_check = "" ;
         answer_holder = "" ;
+        timer_counter = 0 ;
         updateCanvas() ;
     }
+}
+
+function classifyCanvas() 
+{
+    classifier.classify(canvas, gotResult) ; 
+}
+
+function gotResult(error, results) 
+{
+    if(error) 
+    {
+        console.error(error);
+    }
+    console.log(results);
+
+    drawn_sketch = results[0].label ;
+
+    document.getElementById("label").innerHTML = "Drawn Object : " + results[0].label ;
+
+    document.getElementById("confidence").innerHTML = "Confidence : " + Math.round(results[0].confidence * 100) + "%" ;
+
+    utterThis = new SpeechSynthesisUtterance(results[0].label) ;
+    synth.speak(utterThis) ;
 }
